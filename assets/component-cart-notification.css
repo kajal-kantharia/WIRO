@@ -98,8 +98,17 @@
 .cart-notification-product {
   align-items: flex-start;
   display: flex;
-  padding-bottom: 3rem;
+  padding-bottom: 1rem;
   padding-top: 2rem;
+}
+
+.cart-notification-product__content {
+  width: 100%;
+}
+
+.cart-notification-product__item {
+  align-items: flex-start;
+  display: flex;
 }
 
 .cart-notification-product dl {

@@ -7,6 +7,7 @@
 
 {{ 'quantity-popover.css' | asset_url | stylesheet_tag }}
 {{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'gift-wrapping.css' | asset_url | stylesheet_tag }}
 
 <script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
@@ -122,7 +123,7 @@
                     {%- for item in cart.items -%}
                       <tr
                         id="CartDrawer-Item-{{ item.index | plus: 1 }}"
-                        class="cart-item{% if item.parent_relationship.parent != null %} cart-item__nested-line{% endif %}"
+                        class="cart-item{% if item.parent_relationship.parent != null %} cart-item__nested-line{% endif %}{% if item.properties['_Gift wrapping for'] != blank %} gift-wrapping__linked-line{% endif %}"
                         role="row"
                         {% if item.parent_relationship.parent != null %}
                           aria-label="{{- 'products.product.nested_label' | t: title: item.product.title, parent_title: item.parent_relationship.parent.title | escape -}}"
@@ -203,7 +204,7 @@
 
                               {%- for property in item.properties -%}
                                 {%- assign property_first_char = property.first | slice: 0 -%}
-                                {%- if property.last != blank and property_first_char != '_' -%}
+                                {%- if property.last != blank and property_first_char != '_' and property.first != 'Gift wrapping' and property.first != 'To' and property.first != 'From' and property.first != 'Gift message' -%}
                                   <div class="product-option">
                                     <dt>{{ property.first }}:</dt>
                                     <dd>
@@ -360,6 +361,7 @@
                               <cart-remove-button
                                 id="CartDrawer-Remove-{{ item.index | plus: 1 }}"
                                 data-index="{{ item.index | plus: 1 }}"
+                                {% if item.properties['_Gift wrapping id'] != blank %}data-gift-wrap-id="{{ item.properties['_Gift wrapping id'] }}"{% endif %}
                               >
                                 <button
                                   type="button"
@@ -474,6 +476,11 @@
                           </quantity-popover>
                         </td>
                       </tr>
+                      {%- if item.properties['_Gift wrapping id'] != blank -%}
+                        <tr class="gift-wrapping-cart-row">
+                          <td class="tw-px-0 tw-pt-0 tw-pb-[16px]" colspan="4">{% render 'gift-wrapping-cart', item: item %}</td>
+                        </tr>
+                      {%- endif -%}
                     {%- endfor -%}
                   </tbody>
                 </table>

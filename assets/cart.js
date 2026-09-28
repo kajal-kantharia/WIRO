@@ -65,7 +65,8 @@ class CartItems extends window.StandardEvents.createViewEventElement(HTMLElement
   }
 
   resetQuantityInput(id) {
-    const input = this.querySelector(`#Quantity-${id}`);
+    const input = this.querySelector(`#Quantity-${id}`) || this.querySelector(`#Drawer-quantity-${id}`);
+    if (!input) return;
     input.value = input.getAttribute('value');
     this.isEnterPressed = false;
   }
@@ -106,6 +107,9 @@ class CartItems extends window.StandardEvents.createViewEventElement(HTMLElement
   }
 
   onChange(event) {
+    // Gift wrapping also uses a checkbox inside cart-items. Only quantity
+    // inputs belong to Dawn's quantity update flow.
+    if (!event.target.matches('.quantity__input')) return;
     this.validateQuantity(event);
   }
 
@@ -181,14 +185,23 @@ class CartItems extends window.StandardEvents.createViewEventElement(HTMLElement
     // Cache sections before the fetch so we read dataset.id while elements still exist in the DOM
     const sectionsToRender = this.getSectionsToRender();
 
-    const body = JSON.stringify({
-      line,
-      quantity,
-      sections: sectionsToRender.map((section) => section.section),
-      sections_url: window.location.pathname,
-    });
+    const giftWrapId = this.getGiftWrapId(line);
 
-    fetch(`${routes.cart_change_url}`, { ...fetchConfig(), ...{ body } })
+    this.getCart()
+      .then((cart) => {
+        const updates = { [lineKey]: quantity };
+        if (giftWrapId) {
+          const wrapItem = cart.items.find((item) => item.properties?.['_Gift wrapping for'] === giftWrapId);
+          if (wrapItem) updates[wrapItem.key] = quantity;
+        }
+
+        const body = JSON.stringify({
+          updates,
+          sections: sectionsToRender.map((section) => section.section),
+          sections_url: window.location.pathname,
+        });
+        return fetch(routes.cart_update_url, { ...fetchConfig(), ...{ body } });
+      })
       .then((response) => {
         return response.text();
       })
@@ -266,6 +279,17 @@ class CartItems extends window.StandardEvents.createViewEventElement(HTMLElement
         this.disableLoading(line);
         CartPerformance.measureFromMarker(`${eventTarget}:user-action`, cartPerformanceUpdateMarker);
       });
+  }
+
+  getGiftWrapId(line) {
+    const row = document.getElementById(`CartItem-${line}`) || document.getElementById(`CartDrawer-Item-${line}`);
+    return row?.querySelector('cart-remove-button[data-gift-wrap-id]')?.dataset.giftWrapId;
+  }
+
+  async getCart() {
+    const response = await fetch(`${routes.cart_url}.js`);
+    if (!response.ok) throw new Error('Unable to read cart.');
+    return response.json();
   }
 
   createCartLinesUpdateEvent(action, variantId, quantity, lineKey) {

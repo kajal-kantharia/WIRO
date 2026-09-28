@@ -1,0 +1,5 @@
+[data-gift-wrapping-fields][hidden],
+[data-gift-wrapping-cart] [hidden],
+.gift-wrapping__linked-line {
+  display: none !important;
+}

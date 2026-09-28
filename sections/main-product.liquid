@@ -491,6 +491,13 @@
                     block: block,
                     product_form_id: product_form_id
                   %}
+                {%- when 'gift_wrapping' -%}
+                  {% render 'gift-wrapping',
+                    product: product,
+                    section: section,
+                    block: block,
+                    product_form_id: product_form_id
+                  %}
                 {%- when 'buy_buttons' -%}
                   {%- render 'buy-buttons',
                     block: block,
@@ -877,6 +884,88 @@
       "type": "quantity_selector",
       "name": "t:sections.main-product.blocks.quantity_selector.name",
       "limit": 1
+    },
+    {
+      "type": "gift_wrapping",
+      "name": "Gift wrapping",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Wrap as a gift?"
+        },
+        {
+          "type": "product",
+          "id": "gift_wrap_product",
+          "label": "Gift wrapping product",
+          "info": "Select the product used for paid gift wrapping. Leave blank for free gift wrapping."
+        },
+        {
+          "type": "text",
+          "id": "recipient_label",
+          "label": "Recipient label",
+          "default": "To"
+        },
+        {
+          "type": "text",
+          "id": "recipient_placeholder",
+          "label": "Recipient placeholder",
+          "default": "Recipient's name"
+        },
+        {
+          "type": "range",
+          "id": "recipient_limit",
+          "label": "Recipient character limit",
+          "min": 10,
+          "max": 100,
+          "step": 5,
+          "default": 50
+        },
+        {
+          "type": "text",
+          "id": "sender_label",
+          "label": "Sender label",
+          "default": "From"
+        },
+        {
+          "type": "text",
+          "id": "sender_placeholder",
+          "label": "Sender placeholder",
+          "default": "Sender's name"
+        },
+        {
+          "type": "range",
+          "id": "sender_limit",
+          "label": "Sender character limit",
+          "min": 10,
+          "max": 100,
+          "step": 5,
+          "default": 50
+        },
+        {
+          "type": "text",
+          "id": "message_label",
+          "label": "Message label",
+          "default": "Gift message"
+        },
+        {
+          "type": "text",
+          "id": "message_placeholder",
+          "label": "Message placeholder",
+          "default": "Type your message here"
+        },
+        {
+          "type": "range",
+          "id": "message_limit",
+          "label": "Message character limit",
+          "min": 20,
+          "max": 500,
+          "step": 10,
+          "default": 200
+        }
+      ]
     },
     {
       "type": "variant_picker",

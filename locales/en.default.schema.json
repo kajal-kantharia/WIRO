@@ -684,7 +684,7 @@
       }
     },
     "custom-liquid": {
-      "name": "Custom Liquid",
+      "name": "",
       "settings": {
         "custom_liquid": {
           "label": "Liquid code",

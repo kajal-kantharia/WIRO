@@ -4,6 +4,7 @@
 {{ 'component-price.css' | asset_url | stylesheet_tag }}
 {{ 'component-discounts.css' | asset_url | stylesheet_tag }}
 {{ 'quantity-popover.css' | asset_url | stylesheet_tag }}
+{{ 'gift-wrapping.css' | asset_url | stylesheet_tag }}
 
 {%- style -%}
   .section-{{ section.id }}-padding {
@@ -83,7 +84,7 @@
               <tbody>
                 {%- for item in cart.items -%}
                   <tr
-                    class="cart-item {% if item.parent_relationship.parent != null %}cart-item__nested-line{% endif %}"
+                    class="cart-item {% if item.parent_relationship.parent != null %}cart-item__nested-line{% endif %}{% if item.properties['_Gift wrapping for'] != blank %} gift-wrapping__linked-line{% endif %}"
                     id="CartItem-{{ item.index | plus: 1 }}"
                     {% if item.parent_relationship.parent != null %}
                       aria-label="{{- 'products.product.nested_label' | t: title: item.product.title, parent_title: item.parent_relationship.parent.title | escape -}}"
@@ -157,7 +158,7 @@
 
                           {%- for property in item.properties -%}
                             {%- assign property_first_char = property.first | slice: 0 -%}
-                            {%- if property.last != blank and property_first_char != '_' -%}
+                            {%- if property.last != blank and property_first_char != '_' and property.first != 'Gift wrapping' and property.first != 'To' and property.first != 'From' and property.first != 'Gift message' -%}
                               <div class="product-option">
                                 <dt>{{ property.first }}:</dt>
                                 <dd>
@@ -305,6 +306,7 @@
                           <cart-remove-button
                             id="Remove-{{ item.index | plus: 1 }}"
                             data-index="{{ item.index | plus: 1 }}"
+                            {% if item.properties['_Gift wrapping id'] != blank %}data-gift-wrap-id="{{ item.properties['_Gift wrapping id'] }}"{% endif %}
                             {% assign can_remove = item.instructions.can_remove | default: true %}
                             {% if can_remove == false %}
                               class="hidden"
@@ -447,6 +449,11 @@
                       </div>
                     </td>
                   </tr>
+                  {%- if item.properties['_Gift wrapping id'] != blank -%}
+                    <tr class="gift-wrapping-cart-row">
+                      <td class="tw-px-0 tw-pt-0 tw-pb-[16px]" colspan="5">{% render 'gift-wrapping-cart', item: item %}</td>
+                    </tr>
+                  {%- endif -%}
                 {%- endfor -%}
               </tbody>
             </table>

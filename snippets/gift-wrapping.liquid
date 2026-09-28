@@ -1,0 +1,137 @@
+{% comment %}
+  Gift wrapping fields for the Dawn product form.
+
+  The controls intentionally use the `form` attribute so this block can be
+  positioned anywhere in the product-information block order.
+{% endcomment %}
+
+{{ 'gift-wrapping.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign gift_wrap_product = block.settings.gift_wrap_product | default: product.metafields.custom.gift_wrap_product
+  assign gift_wrap_variant = gift_wrap_product.selected_or_first_available_variant
+  assign total_wrap_inventory = 0
+  assign wrap_quantity_in_cart = 0
+  assign show_stock = false
+
+  for variant in gift_wrap_product.variants
+    assign total_wrap_inventory = total_wrap_inventory | plus: variant.inventory_quantity
+  endfor
+
+  for cart_item in cart.items
+    if cart_item.product.id == gift_wrap_product.id
+      assign wrap_quantity_in_cart = wrap_quantity_in_cart | plus: cart_item.quantity
+    endif
+  endfor
+
+  assign inventory = total_wrap_inventory | minus: wrap_quantity_in_cart
+  if inventory < 0
+    assign inventory = 0
+  endif
+
+  if gift_wrap_product != blank
+    assign show_stock = true
+  endif
+-%}
+
+<div
+  class="gift-wrapping tw-my-[16px] tw-w-full tw-text-[rgb(var(--color-foreground))]"
+  data-gift-wrapping
+  data-gift-wrap-variant="{% if gift_wrap_product != blank %}{{ gift_wrap_variant.id }}{% endif %}"
+  data-gift-wrap-price="{% if gift_wrap_product != blank %}{{ gift_wrap_variant.price | money }}{% endif %}"
+  data-gift-wrap-inventory="{{ total_wrap_inventory }}"
+>
+  <div class="tw-flex tw-items-center tw-justify-between tw-gap-[16px] max-[449px]:tw-flex-col max-[449px]:tw-items-start max-[449px]:tw-gap-[7px]">
+    <label class="tw-flex tw-cursor-pointer tw-items-center tw-gap-[8px] tw-text-[14px] tw-leading-[21px]" for="GiftWrap-{{ section.id }}">
+      <input
+        id="GiftWrap-{{ section.id }}"
+        class="tw-m-0 tw-h-[16px] tw-w-[16px] tw-flex-none tw-accent-[#1f1f1f] disabled:tw-cursor-not-allowed disabled:tw-opacity-50"
+        type="checkbox"
+        data-gift-wrapping-toggle
+        aria-controls="GiftWrapFields-{{ section.id }}"
+        {% if gift_wrap_product != blank and inventory <= 0 %}disabled{% endif %}
+      >
+      <span>{{ block.settings.heading | escape }}</span>
+      <span class="tw-whitespace-nowrap">
+        {%- if gift_wrap_product != blank -%}
+          (+{{ gift_wrap_variant.price | money }})
+        {%- else -%}
+          (Free)
+        {%- endif -%}
+      </span>
+    </label>
+
+    {%- if show_stock -%}
+      <p class="tw-m-0 tw-flex tw-flex-shrink-0 tw-items-center tw-gap-[7px] tw-text-[14px] tw-leading-[21px] tw-text-[#E5A000]" role="status">
+        <span class="tw-h-[12px] tw-w-[12px] tw-rounded-full tw-bg-[#E5A000]" aria-hidden="true"></span>
+        <span data-gift-wrap-stock>Only {{ inventory }} left</span>
+      </p>
+    {%- endif -%}
+  </div>
+
+  <div id="GiftWrapFields-{{ section.id }}" class="tw-mt-[18px] tw-grid tw-gap-[18px]" data-gift-wrapping-fields hidden>
+    <input
+      type="hidden"
+      name="properties[Gift wrapping]"
+      value="Yes"
+      form="{{ product_form_id }}"
+      disabled
+      data-gift-wrapping-input
+    >
+    <input
+      type="hidden"
+      name="properties[_Gift wrapping id]"
+      form="{{ product_form_id }}"
+      disabled
+      data-gift-wrapping-id
+    >
+    <div class="tw-grid tw-gap-[7px]">
+      <label class="tw-text-[14px] tw-leading-[21px]" for="GiftRecipient-{{ section.id }}">{{ block.settings.recipient_label | escape }} <span class="tw-text-[red]">*</span></label>
+      <input
+        id="GiftRecipient-{{ section.id }}"
+        class="field__input tw-h-[44px] tw-w-full tw-rounded-[4px] tw-border tw-border-solid tw-border-[#c9c9c9] tw-bg-white tw-px-[16px] tw-py-[10px] tw-text-[16px] tw-leading-[24px] tw-text-[#1f1f1f] placeholder:tw-opacity-100"
+        type="text"
+        name="properties[To]"
+        form="{{ product_form_id }}"
+        placeholder="{{ block.settings.recipient_placeholder | escape }}"
+        maxlength="{{ block.settings.recipient_limit }}"
+        autocomplete="name"
+        disabled
+        data-gift-wrapping-input
+      >
+    </div>
+
+    <div class="tw-grid tw-gap-[7px]">
+      <label class="tw-text-[14px] tw-leading-[21px]" for="GiftSender-{{ section.id }}">{{ block.settings.sender_label | escape }} <span class="tw-text-[red]">*</span></label>
+      <input
+        id="GiftSender-{{ section.id }}"
+        class="field__input tw-h-[44px] tw-w-full tw-rounded-[4px] tw-border tw-border-solid tw-border-[#c9c9c9] tw-bg-white tw-px-[16px] tw-py-[10px] tw-text-[16px] tw-leading-[24px] tw-text-[#1f1f1f] placeholder:tw-text-[#a3a3a3] placeholder:tw-opacity-100"
+        type="text"
+        name="properties[From]"
+        form="{{ product_form_id }}"
+        placeholder="{{ block.settings.sender_placeholder | escape }}"
+        maxlength="{{ block.settings.sender_limit }}"
+        autocomplete="name"
+        disabled
+        data-gift-wrapping-input
+      >
+    </div>
+
+    <div class="tw-grid tw-gap-[7px]">
+      <label class="tw-text-[14px] tw-leading-[21px]" for="GiftMessage-{{ section.id }}">{{ block.settings.message_label | escape }} <span class="tw-text-[red]">*</span></label>
+      <textarea
+        id="GiftMessage-{{ section.id }}"
+        class="field__input tw-min-h-[142px] tw-w-full tw-resize-y tw-rounded-[4px] tw-border tw-border-solid tw-border-[#c9c9c9] tw-bg-white tw-px-[16px] tw-py-[12px] tw-text-[16px] tw-leading-[24px] tw-text-[#1f1f1f] placeholder:tw-text-[#a3a3a3] placeholder:tw-opacity-100"
+        name="properties[Gift message]"
+        form="{{ product_form_id }}"
+        placeholder="{{ block.settings.message_placeholder | escape }}"
+        maxlength="{{ block.settings.message_limit }}"
+        rows="5"
+        disabled
+        data-gift-wrapping-input
+      ></textarea>
+    </div>
+
+    <p class="tw-mt-[-4px] tw-text-[14px] tw-leading-[21px] tw-text-[#c62828]" data-gift-wrapping-error role="alert" hidden></p>
+  </div>
+</div>
